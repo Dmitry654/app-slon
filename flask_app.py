@@ -61,6 +61,7 @@ def main():
 
 
 def handle_dialog(req, res):
+    flag = False
     user_id = req['session']['user_id']
 
     if req['session']['new']:
@@ -99,35 +100,51 @@ def handle_dialog(req, res):
     ]:
         # Пользователь согласился, прощаемся.
         res['response']['text'] = 'Слона можно найти на Яндекс.Маркете!'
-        res['response']['end_session'] = True
+        # res['response']['end_session'] = True
+        flag = True
+
         return
 
-    if 'Слона можно найти на Яндекс.Маркете!' in res['response']['text']:
-        if req['request']['original_utterance'].lower() in [
-            'ладно',
-            'куплю',
-            'покупаю',
-            'хорошо',
-            'я покупаю',
-            'я куплю'
-        ]:
-            res['response']['text'] = 'Кролика можно найти на Яндекс.Маркете!'
-            res['response']['end_session'] = True
-            return
-
-        res['response']['text'] = 'Привет! Купи кролика!'
-        res['response']['text'] = \
-            f"Все говорят '{req['request']['original_utterance']}', а ты купи кролика!"
-        
     # Если нет, то убеждаем его купить слона!
     res['response']['text'] = \
         f"Все говорят '{req['request']['original_utterance']}', а ты купи слона!"
     res['response']['buttons'] = get_suggests(user_id)
 
-    res['response']['text'] = 'Привет! Купи слона!'
-    # Получим подсказки
-    res['response']['buttons'] = get_suggests(user_id)
 
+    if flag:
+        if req['session']['new']:
+            # Это новый пользователь.
+            # Инициализируем сессию и поприветствуем его.
+            # Запишем подсказки, которые мы ему покажем в первый раз
+
+            sessionStorage[user_id] = {
+                'suggests': [
+                    "Не хочу.",
+                    "Не буду.",
+                    "Отстань!",
+                ]
+            }
+            # Заполняем текст ответа
+            res['response']['text'] = 'Привет! Купи кролика!'
+            # Получим подсказки
+            res['response']['buttons'] = get_suggests(user_id)
+            return
+        if req['request']['original_utterance'].lower() in [
+            'ладно',
+            'куплю',
+            'покупаю',
+            'хорошо'
+        ]:
+            # Пользователь согласился, прощаемся.
+            res['response']['text'] = 'Кролика можно найти на Яндекс.Маркете!'
+            res['response']['end_session'] = True
+            flag = False
+            return
+
+        # Если нет, то убеждаем его купить слона!
+        res['response']['text'] = \
+            f"Все говорят '{req['request']['original_utterance']}', а ты купи кролика!"
+        res['response']['buttons'] = get_suggests(user_id)
 
 
 # Функция возвращает две подсказки для ответа.
