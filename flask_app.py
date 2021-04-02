@@ -81,19 +81,19 @@ def handle_dialog(req, res):
         res['response']['buttons'] = get_suggests(user_id)
         return
 
-    # Сюда дойдем только, если пользователь не новый, 
+    # Сюда дойдем только, если пользователь не новый,
     # и разговор с Алисой уже был начат
     # Обрабатываем ответ пользователя.
     # В req['request']['original_utterance'] лежит весь текст,
     # что нам прислал пользователь
-    # Если он написал 'ладно', 'куплю', 'покупаю', 'хорошо', 
+    # Если он написал 'ладно', 'куплю', 'покупаю', 'хорошо',
     # то мы считаем, что пользователь согласился.
     # Подумайте, всё ли в этом фрагменте написано "красиво"?
     if req['request']['original_utterance'].lower() in [
         'ладно',
         'куплю',
         'покупаю',
-        'хорошо'
+        'хорошо',
         'я покупаю',
         'я куплю'
     ]:
@@ -102,10 +102,32 @@ def handle_dialog(req, res):
         res['response']['end_session'] = True
         return
 
+    if 'Слона можно найти на Яндекс.Маркете!' in res['response']['text']:
+        if req['request']['original_utterance'].lower() in [
+            'ладно',
+            'куплю',
+            'покупаю',
+            'хорошо',
+            'я покупаю',
+            'я куплю'
+        ]:
+            res['response']['text'] = 'Кролика можно найти на Яндекс.Маркете!'
+            res['response']['end_session'] = True
+            return
+
+        res['response']['text'] = 'Привет! Купи кролика!'
+        res['response']['text'] = \
+            f"Все говорят '{req['request']['original_utterance']}', а ты купи кролика!"
+        
     # Если нет, то убеждаем его купить слона!
     res['response']['text'] = \
         f"Все говорят '{req['request']['original_utterance']}', а ты купи слона!"
     res['response']['buttons'] = get_suggests(user_id)
+
+    res['response']['text'] = 'Привет! Купи слона!'
+    # Получим подсказки
+    res['response']['buttons'] = get_suggests(user_id)
+
 
 
 # Функция возвращает две подсказки для ответа.
