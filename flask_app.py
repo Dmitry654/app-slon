@@ -100,51 +100,49 @@ def handle_dialog(req, res):
     ]:
         # Пользователь согласился, прощаемся.
         res['response']['text'] = 'Слона можно найти на Яндекс.Маркете!'
-        res['response']['end_session'] = True
         flag = True
+        if flag:
+            if not req['session']['new']:
+                # Это новый пользователь.
+                # Инициализируем сессию и поприветствуем его.
+                # Запишем подсказки, которые мы ему покажем в первый раз
 
+                sessionStorage[user_id] = {
+                    'suggests': [
+                        "Не хочу.",
+                        "Не буду.",
+                        "Отстань!",
+                    ]
+                }
+                # Заполняем текст ответа
+                res['response']['text'] = 'Привет! Купи кролика!'
+                # Получим подсказки
+                res['response']['buttons'] = get_suggests(user_id)
+                return
+            if req['request']['original_utterance'].lower() in [
+                'ладно',
+                'куплю',
+                'покупаю',
+                'хорошо',
+                'я покупаю',
+                'я куплю'
+            ]:
+                # Пользователь согласился, прощаемся.
+                res['response']['text'] = 'Кролика можно найти на Яндекс.Маркете!'
+                res['response']['end_session'] = True
+                flag = False
+                return
+
+            # Если нет, то убеждаем его купить слона!
+            res['response']['text'] = \
+                f"Все говорят '{req['request']['original_utterance']}', а ты купи кролика!"
+            res['response']['buttons'] = get_suggests(user_id)
         return
 
     # Если нет, то убеждаем его купить слона!
     res['response']['text'] = \
         f"Все говорят '{req['request']['original_utterance']}', а ты купи слона!"
     res['response']['buttons'] = get_suggests(user_id)
-
-
-    if flag:
-        if req['session']['new']:
-            # Это новый пользователь.
-            # Инициализируем сессию и поприветствуем его.
-            # Запишем подсказки, которые мы ему покажем в первый раз
-
-            sessionStorage[user_id] = {
-                'suggests': [
-                    "Не хочу.",
-                    "Не буду.",
-                    "Отстань!",
-                ]
-            }
-            # Заполняем текст ответа
-            res['response']['text'] = 'Привет! Купи кролика!'
-            # Получим подсказки
-            res['response']['buttons'] = get_suggests(user_id)
-            return
-        if req['request']['original_utterance'].lower() in [
-            'ладно',
-            'куплю',
-            'покупаю',
-            'хорошо'
-        ]:
-            # Пользователь согласился, прощаемся.
-            res['response']['text'] = 'Кролика можно найти на Яндекс.Маркете!'
-            res['response']['end_session'] = True
-            flag = False
-            return
-
-        # Если нет, то убеждаем его купить слона!
-        res['response']['text'] = \
-            f"Все говорят '{req['request']['original_utterance']}', а ты купи кролика!"
-        res['response']['buttons'] = get_suggests(user_id)
 
 
 # Функция возвращает две подсказки для ответа.
